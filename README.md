@@ -303,21 +303,6 @@ Admin alert is sent to Telegram
 
 ---
 
-## Screenshots
-
-Add screenshots to the `screenshots/` folder:
-
-```text
-screenshots/main-workflow.png
-screenshots/error-monitor-workflow.png
-screenshots/telegram-demo.png
-screenshots/google-sheets-leads.png
-screenshots/google-sheets-events.png
-screenshots/error-alert.png
-```
-
----
-
 ## Setup Notes
 
 To use this workflow:
