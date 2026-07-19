@@ -16,6 +16,30 @@ The solution is an n8n workflow that automates the full lead intake process and 
 
 ---
 
+## Demo
+
+### Main workflow
+
+![Telegram Lead Intake Automation workflow](screenshots/main-workflow.png)
+
+### Telegram conversation
+
+![Telegram bot conversation](screenshots/telegram-demo.png)
+
+### Lead and event logs
+
+![Google Sheets lead log](screenshots/google-sheets-leads.png)
+
+![Google Sheets event log](screenshots/google-sheets-events.png)
+
+### Error monitoring
+
+![Error Monitor workflow](screenshots/error-monitor-workflow.png)
+
+![Telegram admin error alert](screenshots/error-alert.png)
+
+---
+
 ## Features
 
 * Telegram lead intake
@@ -59,8 +83,8 @@ The repository contains sanitized n8n workflow exports:
 
 ```text
 workflows/
-├── telegram-lead-intake-v1-SANITIZED.json
-└── telegram-error-monitor-v1-SANITIZED.json
+├── telegram-lead-intake-automation.json
+└── telegram-lead-intake-error-monitor.json
 ```
 
 Sensitive values such as credentials, Google Sheet IDs, webhook IDs, and private chat IDs are replaced with placeholders.
@@ -72,7 +96,19 @@ Sensitive values such as credentials, Google Sheet IDs, webhook IDs, and private
 ```text
 Telegram Trigger
 → Normalize Lead
-→ Validate Required Fields
+→ Validate Chat ID
+→ Is Start Command?
+
+Command branch:
+  → Send Start Message
+  → Log Start Command
+
+Non-command branch:
+  → Is Supported Text?
+      → Unsupported: Send Unsupported Message → Log Unsupported Message
+      → Supported: continue to text lead branch
+
+Text lead branch:
 → Update User State
 → Check Existing Lead
 → Is Duplicate?
@@ -107,8 +143,8 @@ New lead branch:
 ```text
 Error Trigger
 → Normalize Error
-→ Append Error Log
 → Send Admin Alert
+→ Append Error Log
 ```
 
 The Error Workflow is connected to the main workflow and sends a Telegram alert when the main workflow fails.
@@ -127,6 +163,7 @@ Stores accepted leads.
 | ----------------- | ----------------------------------- |
 | `created_at`      | Lead creation timestamp             |
 | `chat_id`         | Telegram chat ID                    |
+| `message_id`      | Telegram message ID                 |
 | `username`        | Telegram username                   |
 | `first_name`      | Telegram first name                 |
 | `text`            | Original message text               |
@@ -143,6 +180,7 @@ Stores workflow events.
 | ------------ | ------------------ |
 | `created_at` | Event timestamp    |
 | `chat_id`    | Telegram chat ID   |
+| `message_id` | Telegram message ID |
 | `username`   | Telegram username  |
 | `text`       | Original lead text |
 | `dedupe_key` | Related dedupe key |
@@ -157,6 +195,8 @@ reply_sent
 follow_up_sent
 follow_up_skipped
 duplicate
+start_command
+unsupported_message
 ```
 
 ### `telegram_user_state`
@@ -167,6 +207,7 @@ Stores the latest user state used to decide whether a follow-up should be sent.
 | ----------------- | ----------------------- |
 | `chat_id`         | Telegram chat ID        |
 | `username`        | Telegram username       |
+| `last_message_id` | Latest Telegram message ID |
 | `last_message_at` | Last message timestamp  |
 | `last_text`       | Last user message       |
 | `last_dedupe_key` | Last message dedupe key |
@@ -290,7 +331,41 @@ The original follow-up is skipped
 event_type = follow_up_skipped
 ```
 
-### 7. Error workflow
+### 7. Follow-up sent
+
+Send a supported text message and do not reply during the configured delay.
+
+Expected result:
+
+```text
+Follow-up message is sent
+event_type = follow_up_sent
+```
+
+### 8. Start command
+
+Send `/start`.
+
+Expected result:
+
+```text
+Welcome message is sent
+No lead row is created
+```
+
+### 9. Unsupported message
+
+Send a photo, voice message, file, or sticker without supported text.
+
+Expected result:
+
+```text
+User is asked to send text
+No lead row is created
+Workflow does not fail
+```
+
+### 10. Error workflow
 
 Trigger a controlled error using `Stop and Error`.
 
@@ -317,8 +392,10 @@ To use this workflow:
    * `telegram_user_state`
    * `workflow_errors`
 5. Replace placeholder values with your own IDs.
-6. Activate the main workflow.
-7. Connect the Error Workflow in the main workflow settings.
+6. Set the timezone of both workflows to `Europe/Riga` after import if your n8n version does not preserve it.
+7. In the main workflow settings, select `Telegram Lead Intake — Error Monitor` as the Error Workflow.
+8. Keep the follow-up delay at 10 minutes.
+9. Activate the main workflow.
 
 ---
 
@@ -373,11 +450,16 @@ Completed as a portfolio project.
 Main tested scenarios:
 
 ```text
-1 website — ok
-2 bot — ok
-3 automation — ok
-4 other — ok
-5 duplicate — ok
-6 follow-up skip — ok
-Error workflow — ok
+/start — ok
+unsupported message — ok
+website — ok
+bot — ok
+automation — ok
+other — ok
+duplicate — ok
+follow-up sent — ok
+follow-up cancelled — ok
+controlled technical error — ok
+Telegram admin alert — ok
+workflow_errors log — ok
 ```

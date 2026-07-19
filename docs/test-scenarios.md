@@ -99,7 +99,45 @@ The original follow-up is skipped
 event_type = follow_up_skipped
 ```
 
-### 7. Error workflow
+### 7. Follow-up sent
+
+Send a supported text message and do not send another message during the configured delay.
+
+Expected result:
+
+```text
+Follow-up message is sent
+event_type = follow_up_sent
+```
+
+### 8. Start command
+
+Input:
+
+```text
+/start
+```
+
+Expected result:
+
+```text
+Welcome message is sent
+No lead row is created
+```
+
+### 9. Unsupported message
+
+Send a photo, voice message, file, or sticker without supported text.
+
+Expected result:
+
+```text
+User is asked to send text
+No lead row is created
+Workflow completes successfully
+```
+
+### 10. Error workflow
 
 Trigger a controlled error using `Stop and Error`.
 

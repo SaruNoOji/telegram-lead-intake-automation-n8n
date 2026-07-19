@@ -1,5 +1,5 @@
 {
-  "name": "Duplicate check",
+  "name": "Telegram Lead Intake Automation",
   "nodes": [
     {
       "parameters": {
@@ -11,67 +11,78 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.3,
       "position": [
-        -960,
-        -208
+        -1184,
+        1136
       ],
-      "id": "296e7382-16eb-47f4-9383-cb0387fca9fd",
-      "name": "Telegram Trigger",
-      "webhookId": "YOUR_WEBHOOK_ID",
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "id": "b9d40c69-4cee-4c47-a4ce-8306763dc890",
+      "name": "Telegram Trigger"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "dd171417-887d-42e3-b639-1e08862d37a6",
+              "id": "66d58962-4625-4c7a-9a3b-eb146e93f828",
               "name": "created_at",
-              "value": "={{ $now.setZone('Europe/Riga').format('yyyy-MM-dd HH:mm') }}",
+              "value": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}",
               "type": "string"
             },
             {
-              "id": "3f4616f7-7af5-470e-a862-45c722f4f112",
+              "id": "0bf8a35f-6ea8-44fc-b0c4-0c18075cf5be",
               "name": "chat_id",
-              "value": "={{ $json.message.chat.id }}",
+              "value": "={{ $json.message?.chat?.id || null }}",
               "type": "number"
             },
             {
-              "id": "f1061b8d-9568-4bfc-9166-0bc89ae75673",
+              "id": "f365f58e-3b3e-4aee-b7b0-120822aef213",
+              "name": "message_id",
+              "value": "={{ $json.message?.message_id || null }}",
+              "type": "number"
+            },
+            {
+              "id": "65f8ceaf-ee64-4989-b50a-01abd52275a4",
               "name": "username",
-              "value": "={{ $json.message.from.username || \"\" }}",
+              "value": "={{ ($json.message?.from?.username || '').trim() }}",
               "type": "string"
             },
             {
-              "id": "68a7f4e2-c584-45a9-ae7b-7e880689245a",
+              "id": "9286cf48-37fc-43c9-b4fd-0a679b4652f4",
               "name": "first_name",
-              "value": "={{ ($json.message.from.first_name || \"\").trim() }}",
+              "value": "={{ ($json.message?.from?.first_name || '').trim() }}",
               "type": "string"
             },
             {
-              "id": "cbf8ae35-7ea0-45dd-9a6d-475f2974ebcf",
+              "id": "6bbff805-38fc-4af1-8177-e6de6b450fdb",
               "name": "text",
-              "value": "={{ ($json.message.text || \"\").trim() }}",
+              "value": "={{ ($json.message?.text || '').trim() }}",
               "type": "string"
             },
             {
-              "id": "d3c462cf-ea39-4676-bb9f-39f8373d4c51",
+              "id": "f972fa95-b2ef-4677-8ef7-f1e86a93185c",
               "name": "normalized_text",
-              "value": "={{ ($json.message.text || \"\").trim().toLowerCase().replace(/\\s+/g, \" \") }}",
+              "value": "={{ ($json.message?.text || '').trim().toLowerCase().replace(/\\s+/g, ' ') }}",
               "type": "string"
             },
             {
-              "id": "c9e119f8-d17c-47b7-a1e3-1204a4f4e164",
+              "id": "43592479-9793-46d4-96a5-959703103967",
+              "name": "message_type",
+              "value": "={{ $json.message?.text !== undefined ? 'text' : $json.message?.photo ? 'photo' : $json.message?.voice ? 'voice' : $json.message?.audio ? 'audio' : $json.message?.video ? 'video' : $json.message?.video_note ? 'video_note' : $json.message?.document ? 'document' : $json.message?.sticker ? 'sticker' : $json.message?.animation ? 'animation' : $json.message?.location ? 'location' : $json.message?.contact ? 'contact' : $json.message?.poll ? 'poll' : 'other' }}",
+              "type": "string"
+            },
+            {
+              "id": "08dc76a4-8b5f-43e8-83a1-2740d3733147",
+              "name": "is_start",
+              "value": "={{ /^\\/start(?:@\\w+)?(?:\\s|$)/i.test(($json.message?.text || '').trim()) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "c5da25f5-a3e5-46c1-8873-30364b39fc19",
               "name": "dedupe_key",
-              "value": "={{ $json.message.chat.id + \":\" + (($json.message.text || \"\").trim().toLowerCase().replace(/\\s+/g, \" \")) }}",
+              "value": "={{ String($json.message?.chat?.id || '') + ':' + $now.format('yyyy-MM-dd') + ':' + (($json.message?.text || '').trim().toLowerCase().replace(/\\s+/g, ' ')) }}",
               "type": "string"
             },
             {
-              "id": "14160906-56b1-47e9-967f-48c7875ed32b",
+              "id": "cecf2f11-fff8-4286-b2cb-db781a03bee0",
               "name": "status",
               "value": "new",
               "type": "string"
@@ -83,10 +94,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -736,
-        -208
+        -960,
+        1136
       ],
-      "id": "5802655e-2db8-487e-b7e5-658b4b649bfd",
+      "id": "087524eb-2dbe-4f53-b3be-1f081800c17d",
       "name": "Normalize Lead"
     },
     {
@@ -117,10 +128,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        160,
-        -304
+        384,
+        1040
       ],
-      "id": "592b5507-4ab8-41d9-8454-5df2662f7915",
+      "id": "27a6274b-9bbb-44cc-b9a4-40e91b5a38ae",
       "name": "Is Duplicate?"
     },
     {
@@ -134,47 +145,40 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        384,
-        -400
+        608,
+        944
       ],
-      "id": "66becf8d-f54f-40c7-8dcf-f10702ce29d3",
+      "id": "cdc18517-4a86-4231-b3ab-adeeae23c2be",
       "name": "Send Duplicate Reply",
-      "webhookId": "YOUR_WEBHOOK_ID",
       "retryOnFail": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1282710404,
-          "mode": "list",
-          "cachedResultName": "telegram_log",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_log"
+          "value": "telegram_events",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "created_at": "={{ $('Normalize Lead').item.json.created_at }}",
             "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
             "username": "={{ $('Normalize Lead').item.json.username }}",
             "text": "={{ $('Normalize Lead').item.json.text }}",
             "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
-            "note": "Duplicate",
-            "event_type": "duplicate"
+            "lead_type": "",
+            "event_type": "duplicate",
+            "note": "Duplicate request received"
           },
           "matchingColumns": [],
           "schema": [
@@ -191,6 +195,16 @@
             {
               "id": "chat_id",
               "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -229,6 +243,16 @@
               "removed": false
             },
             {
+              "id": "lead_type",
+              "displayName": "lead_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
               "id": "event_type",
               "displayName": "event_type",
               "required": false,
@@ -257,18 +281,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        608,
-        -400
+        832,
+        944
       ],
-      "id": "eba89ec7-c4ba-4adc-aa09-72c38c151398",
+      "id": "21ff33cc-3711-4d9b-ad42-fc451b405c02",
       "name": "Log duplicate",
       "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -277,7 +297,7 @@
             {
               "id": "813d8081-a55b-4bc8-8c86-dcb2bf98a911",
               "name": "lead_type",
-              "value": "={{    $('Normalize Lead').item.json.normalized_text.includes('Website') || $('Normalize Lead').item.json.normalized_text.includes('Lending') || $('Normalize Lead').item.json.normalized_text.includes('website')     ? 'website'     : $('Normalize Lead').item.json.normalized_text.includes('bot') || $('Normalize Lead').item.json.normalized_text.includes('telegram bot') || $('Normalize Lead').item.json.normalized_text.includes('telegram-bot')       ? 'bot'       : $('Normalize Lead').item.json.normalized_text.includes('automation') || $('Normalize Lead').item.json.normalized_text.includes('n8n') || $('Normalize Lead').item.json.normalized_text.includes('crm')         ? 'automation'         : 'other' }}",
+              "value": "={{\n(() => {\n  const text = $('Normalize Lead').item.json.normalized_text || '';\n\n  const websiteKeywords = [\n    'website',\n    'web site',\n    'landing page',\n    'landing',\n    'webshop',\n    'ecommerce',\n    'e-commerce',\n    'online store'\n  ];\n\n  const botKeywords = [\n    'telegram bot',\n    'telegram-bot',\n    'chatbot',\n    'chat bot',\n    'bot'\n  ];\n\n  const automationKeywords = [\n    'automation',\n    'automate',\n    'n8n',\n    'workflow',\n    'crm',\n    'integration',\n    'webhook',\n    'google sheets'\n  ];\n\n  if (websiteKeywords.some(keyword => text.includes(keyword))) {\n    return 'website';\n  }\n\n  if (botKeywords.some(keyword => text.includes(keyword))) {\n    return 'bot';\n  }\n\n  if (automationKeywords.some(keyword => text.includes(keyword))) {\n    return 'automation';\n  }\n\n  return 'other';\n})()\n}}",
               "type": "string"
             }
           ]
@@ -287,10 +307,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        384,
-        -208
+        608,
+        1136
       ],
-      "id": "3f3d51f8-9d3c-4124-8539-eb4332fab38e",
+      "id": "f414b95d-7dbf-4b24-960a-92ec56970ec9",
       "name": "Classify Lead Type"
     },
     {
@@ -394,10 +414,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        832,
-        -240
+        1056,
+        1104
       ],
-      "id": "7f0b8451-b775-41d8-b7e6-d6ebae727853",
+      "id": "59a585ec-5350-430a-a1d1-a3e7df63bc86",
       "name": "Switch by Lead Type"
     },
     {
@@ -405,30 +425,27 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "telegram_leads",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_leads"
+          "value": "telegram_leads",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "created_at": "={{ $('Normalize Lead').item.json.created_at }}",
             "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
             "username": "={{ $('Normalize Lead').item.json.username }}",
             "first_name": "={{ $('Normalize Lead').item.json.first_name }}",
             "text": "={{ $('Normalize Lead').item.json.text }}",
             "normalized_text": "={{ $('Normalize Lead').item.json.normalized_text }}",
             "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
-            "status": "={{ $('Normalize Lead').item.json.status }}",
-            "lead_type": "={{ $json.lead_type }}"
+            "lead_type": "={{ $json.lead_type }}",
+            "status": "={{ $('Normalize Lead').item.json.status }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -439,7 +456,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "chat_id",
@@ -448,7 +466,18 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "username",
@@ -457,7 +486,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "first_name",
@@ -466,7 +496,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "text",
@@ -475,7 +506,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "normalized_text",
@@ -526,41 +558,34 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        608,
-        -208
+        832,
+        1136
       ],
-      "id": "aa15d55b-395e-4ab4-bd58-9a7fad7c720a",
+      "id": "50f0d66d-3871-44f6-b64a-8fa7d58183ba",
       "name": "Append Lead",
       "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1110668098,
-          "mode": "list",
-          "cachedResultName": "telegram_events",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_events"
+          "value": "telegram_events",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "created_at": "={{ $('Normalize Lead').item.json.created_at }}",
             "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
             "username": "={{ $('Normalize Lead').item.json.username }}",
             "text": "={{ $('Normalize Lead').item.json.text }}",
             "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
@@ -577,7 +602,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "chat_id",
@@ -586,7 +612,18 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "username",
@@ -595,7 +632,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "text",
@@ -604,7 +642,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "dedupe_key",
@@ -613,7 +652,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "lead_type",
@@ -622,7 +662,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "event_type",
@@ -631,7 +672,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "note",
@@ -640,7 +682,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -651,41 +694,34 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1280,
-        -208
+        1504,
+        1136
       ],
-      "id": "ce4c4424-9b97-4e94-ba9c-54c73cee7738",
+      "id": "caa321ae-4727-4d44-b4f0-8445c5a4c8e7",
       "name": "Log Reply Sent",
       "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1110668098,
-          "mode": "list",
-          "cachedResultName": "telegram_events",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_events"
+          "value": "telegram_events",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "created_at": "={{ $now.setZone('Europe/Riga').format('yyyy-MM-dd HH:mm') }}",
+            "created_at": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}",
             "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
             "username": "={{ $('Normalize Lead').item.json.username }}",
             "text": "={{ $('Normalize Lead').item.json.text }}",
             "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
@@ -702,7 +738,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "chat_id",
@@ -711,7 +748,18 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "username",
@@ -720,7 +768,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "text",
@@ -729,7 +778,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "dedupe_key",
@@ -738,7 +788,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "lead_type",
@@ -747,7 +798,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "event_type",
@@ -756,7 +808,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "note",
@@ -765,7 +818,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -777,54 +831,47 @@
       "typeVersion": 4.7,
       "position": [
         2624,
-        -304
+        1040
       ],
-      "id": "db277445-bacb-4199-a9af-1e97f2a2f56d",
+      "id": "bb128317-e520-4869-a2d9-04facf619ea5",
       "name": "Log Follow-up Sent",
       "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
-        "amount": 10
+        "amount": 10,
+        "unit": "minutes"
       },
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
         1728,
-        -208
+        1136
       ],
-      "id": "6ba58883-df73-416d-aeb6-21c39bb303a6",
-      "name": "Wait Follow-up Delay",
-      "webhookId": "YOUR_WEBHOOK_ID"
+      "id": "933e8f5a-2d90-4025-bcf3-6da3a2c195e2",
+      "name": "Wait Follow-up Delay"
     },
     {
       "parameters": {
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 480234270,
-          "mode": "list",
-          "cachedResultName": "telegram_user_state",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_user_state"
+          "value": "telegram_user_state",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
             "username": "={{ $('Normalize Lead').item.json.username }}",
+            "last_message_id": "={{ $('Normalize Lead').item.json.message_id }}",
             "last_message_at": "={{ $('Normalize Lead').item.json.created_at }}",
             "last_text": "={{ $('Normalize Lead').item.json.text }}",
             "last_dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}"
@@ -850,7 +897,18 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_message_id",
+              "displayName": "last_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "last_message_at",
@@ -859,7 +917,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "last_text",
@@ -868,7 +927,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "last_dedupe_key",
@@ -877,7 +937,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -888,48 +949,41 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -288,
-        -304
+        -64,
+        1040
       ],
-      "id": "effe17d1-0aa0-4767-bc59-e61f772aae0a",
+      "id": "8f123208-4e68-4dc9-9af0-b967467975e9",
       "name": "Update User State",
       "retryOnFail": true,
       "notesInFlow": false,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1110668098,
-          "mode": "list",
-          "cachedResultName": "telegram_events",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_events"
+          "value": "telegram_events",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "created_at": "={{ $now.setZone('Europe/Riga').format('yyyy-MM-dd HH:mm') }}",
+            "created_at": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}",
             "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
             "username": "={{ $('Normalize Lead').item.json.username }}",
             "text": "={{ $('Normalize Lead').item.json.text }}",
             "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
             "lead_type": "={{ $('Classify Lead Type').item.json.lead_type }}",
             "event_type": "follow_up_skipped",
-            "note": "Follow-up message was skipped"
+            "note": "Follow-up was skipped because a newer message was received"
           },
           "matchingColumns": [],
           "schema": [
@@ -940,7 +994,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "chat_id",
@@ -949,7 +1004,18 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "username",
@@ -958,7 +1024,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "text",
@@ -967,7 +1034,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "dedupe_key",
@@ -976,7 +1044,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "lead_type",
@@ -985,7 +1054,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "event_type",
@@ -994,7 +1064,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "note",
@@ -1003,7 +1074,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -1015,16 +1087,13 @@
       "typeVersion": 4.7,
       "position": [
         2400,
-        -112
+        1232
       ],
-      "id": "273599d0-af3d-4c7a-a406-e9349df35a7f",
+      "id": "16ab9830-9a6d-4752-9bf1-c0e4cac6f5e8",
       "name": "Log Follow-up Skipped",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -1037,9 +1106,9 @@
           },
           "conditions": [
             {
-              "id": "9920d6f1-0f46-4846-af0e-5e7ff982f96c",
-              "leftValue": "={{ String($json.chat_id || \"\").trim() !== \"\" && String($json.text || \"\").trim() !== \"\" }}",
-              "rightValue": "=",
+              "id": "7ea87ff3-cc7a-4cd4-9b77-1e23c85997c8",
+              "leftValue": "={{ $json.chat_id !== null && $json.chat_id !== undefined && String($json.chat_id).trim() !== '' }}",
+              "rightValue": "",
               "operator": {
                 "type": "boolean",
                 "operation": "true",
@@ -1054,40 +1123,36 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -512,
-        -208
+        -736,
+        1136
       ],
-      "id": "378fb94c-0647-4e77-a056-1b26afd17cc4",
-      "name": "Validate Required Fields"
+      "id": "c763ae27-3302-4795-8f59-8b1a79896139",
+      "name": "Validate Chat ID"
     },
     {
       "parameters": {
-        "errorMessage": "={{ \n  'Missing required Telegram fields. chat_id=' \n  + $('Normalize Lead').item.json.chat_id \n  + ', text=' \n  + $('Normalize Lead').item.json.text \n}}"
+        "errorMessage": "={{ 'Telegram update does not contain a usable chat_id. message_type=' + String($('Normalize Lead').item.json.message_type || 'unknown') }}"
       },
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        -288,
-        -112
+        -512,
+        1232
       ],
-      "id": "e5583888-d5a8-4478-8a82-b69438395ae4",
+      "id": "507fe2e1-af15-458e-8976-0655b711a8e9",
       "name": "Stop and Error"
     },
     {
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "telegram_leads",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_leads"
+          "value": "telegram_leads",
+          "mode": "name"
         },
         "filtersUI": {
           "values": [
@@ -1102,19 +1167,15 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -64,
-        -304
+        160,
+        1040
       ],
-      "id": "07213fc9-a410-4208-85c0-afe85b102719",
+      "id": "068907d3-8f85-43e5-9279-5ef4be8e0362",
       "name": "Check Existing Lead",
       "alwaysOutputData": true,
       "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -1127,19 +1188,14 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1056,
-        -496
+        1280,
+        752
       ],
-      "id": "6e0b4ab7-298f-4e91-85d1-f8c311d15134",
+      "id": "5c518a66-6123-4247-a48a-9d94de8aceda",
       "name": "Send Website Reply",
-      "webhookId": "YOUR_WEBHOOK_ID",
       "retryOnFail": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -1152,19 +1208,14 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1056,
-        -304
+        1280,
+        1040
       ],
-      "id": "102e7a2e-52d9-4bac-8c6b-f96ee6ff4447",
+      "id": "ef959357-aa91-4583-852b-020c9359a164",
       "name": "Send Bot Reply",
-      "webhookId": "YOUR_WEBHOOK_ID",
       "retryOnFail": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -1177,19 +1228,14 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1056,
-        -112
+        1280,
+        1232
       ],
-      "id": "6ba1078f-37df-414c-b1a5-25cb3893f16f",
+      "id": "6c34147f-5db9-42ac-949f-babe28f54ad3",
       "name": "Send Automation Reply",
-      "webhookId": "YOUR_WEBHOOK_ID",
       "retryOnFail": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -1202,77 +1248,26 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1056,
-        80
+        1280,
+        1520
       ],
-      "id": "52cf597c-36f6-4851-a1c1-afd51b42d62b",
+      "id": "593f16b3-5e30-40dd-96aa-fa6950e14768",
       "name": "Send Other Reply",
-      "webhookId": "YOUR_WEBHOOK_ID",
       "retryOnFail": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 480234270,
-          "mode": "list",
-          "cachedResultName": "telegram_user_state",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_user_state"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "chat_id",
-              "lookupValue": "={{ $('Normalize Lead').item.json.chat_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1504,
-        -208
-      ],
-      "id": "ee234a1b-1d8a-40c9-8382-d3c0e007dc03",
-      "name": "Check User State Before Wait",
-      "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 480234270,
-          "mode": "list",
-          "cachedResultName": "telegram_user_state",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=telegram_user_state"
+          "value": "telegram_user_state",
+          "mode": "name"
         },
         "filtersUI": {
           "values": [
@@ -1288,17 +1283,13 @@
       "typeVersion": 4.7,
       "position": [
         1952,
-        -208
+        1136
       ],
-      "id": "3fa7e460-2dd7-49a9-8a10-c272865869a4",
+      "id": "ec6b3642-9032-4389-b1b7-8b43826e9466",
       "name": "Check User State After Wait",
       "retryOnFail": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     },
     {
       "parameters": {
@@ -1311,9 +1302,9 @@
           },
           "conditions": [
             {
-              "id": "e1ab6c5b-a3ee-4597-929c-38c0315e5305",
-              "leftValue": "={{ $('Check User State Before Wait').item.json.last_dedupe_key }}",
-              "rightValue": "={{ $json.last_dedupe_key }}",
+              "id": "c251765f-033a-4d05-a13d-cdef15a28951",
+              "leftValue": "={{ String($json.last_message_id || '') }}",
+              "rightValue": "={{ String($('Normalize Lead').item.json.message_id || '') }}",
               "operator": {
                 "type": "string",
                 "operation": "equals"
@@ -1328,9 +1319,9 @@
       "typeVersion": 2.3,
       "position": [
         2176,
-        -208
+        1136
       ],
-      "id": "980b80b4-d834-448c-9206-3fd0da0c5589",
+      "id": "e2cf408e-9c58-44b9-9d05-8ebdf01b6311",
       "name": "Should Send Follow-up?"
     },
     {
@@ -1345,17 +1336,393 @@
       "typeVersion": 1.2,
       "position": [
         2400,
-        -304
+        1040
       ],
-      "id": "9c6b2b9e-c7dd-4b38-8019-03ccdc582e4e",
+      "id": "f8e62c0f-9e2f-4899-a446-1ea8bfa410ba",
       "name": "Send Follow-up Message",
-      "webhookId": "YOUR_WEBHOOK_ID",
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d09001c6-ecaa-4d07-bab2-e9dfdd03a8ae",
+              "leftValue": "={{ $json.is_start === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -512,
+        1040
+      ],
+      "id": "7031aa98-e2c4-436d-9790-b56151cbb985",
+      "name": "Is Start Command?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Normalize Lead').item.json.chat_id }}",
+        "text": "Welcome! Describe what you need help with: a website, Telegram bot, or business automation. Please send your request as a text message.",
+        "additionalFields": {
+          "appendAttribution": false
         }
-      }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        848
+      ],
+      "id": "9fbe5a79-3303-40ac-aa4c-5124f02a8b91",
+      "name": "Send Start Message",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "telegram_events",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $('Normalize Lead').item.json.created_at }}",
+            "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
+            "username": "={{ $('Normalize Lead').item.json.username }}",
+            "text": "={{ $('Normalize Lead').item.json.text }}",
+            "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
+            "lead_type": "",
+            "event_type": "start_command",
+            "note": "Start command received"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "dedupe_key",
+              "displayName": "dedupe_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_type",
+              "displayName": "lead_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "note",
+              "displayName": "note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -64,
+        848
+      ],
+      "id": "d39d2d02-13c7-4dfc-b429-8a4279b18b4f",
+      "name": "Log Start Command",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3d84273f-ca3f-4567-b9bb-93680ab5d676",
+              "leftValue": "={{ $json.message_type === 'text' && String($json.text || '').trim() !== '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        1136
+      ],
+      "id": "63b7470e-9886-4a15-9bec-2f377274b6d8",
+      "name": "Is Supported Text?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Normalize Lead').item.json.chat_id }}",
+        "text": "Please send your request as a text message. Photos, files, voice messages, videos, and stickers are not processed in this demo.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        1232
+      ],
+      "id": "2d18f143-6023-4501-bbcf-80210f5d85ff",
+      "name": "Send Unsupported Message",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "telegram_events",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $('Normalize Lead').item.json.created_at }}",
+            "chat_id": "={{ $('Normalize Lead').item.json.chat_id }}",
+            "message_id": "={{ $('Normalize Lead').item.json.message_id }}",
+            "username": "={{ $('Normalize Lead').item.json.username }}",
+            "text": "={{ $('Normalize Lead').item.json.text }}",
+            "dedupe_key": "={{ $('Normalize Lead').item.json.dedupe_key }}",
+            "lead_type": "",
+            "event_type": "unsupported_message_type",
+            "note": "={{ 'Unsupported Telegram message type: ' + String($('Normalize Lead').item.json.message_type || 'unknown') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "dedupe_key",
+              "displayName": "dedupe_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_type",
+              "displayName": "lead_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "note",
+              "displayName": "note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        160,
+        1232
+      ],
+      "id": "3c6e3835-cfab-44cd-9b22-d8e082a5d005",
+      "name": "Log Unsupported Message",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
     }
   ],
   "pinData": {},
@@ -1375,7 +1742,105 @@
       "main": [
         [
           {
-            "node": "Validate Required Fields",
+            "node": "Validate Chat ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Chat ID": {
+      "main": [
+        [
+          {
+            "node": "Is Start Command?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Start Command?": {
+      "main": [
+        [
+          {
+            "node": "Send Start Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Supported Text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Start Message": {
+      "main": [
+        [
+          {
+            "node": "Log Start Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Supported Text?": {
+      "main": [
+        [
+          {
+            "node": "Update User State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Unsupported Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Unsupported Message": {
+      "main": [
+        [
+          {
+            "node": "Log Unsupported Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User State": {
+      "main": [
+        [
+          {
+            "node": "Check Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing Lead": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate?",
             "type": "main",
             "index": 0
           }
@@ -1411,16 +1876,22 @@
         ]
       ]
     },
-    "Log duplicate": {
-      "main": [
-        []
-      ]
-    },
     "Classify Lead Type": {
       "main": [
         [
           {
             "node": "Append Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Lead": {
+      "main": [
+        [
+          {
+            "node": "Switch by Lead Type",
             "type": "main",
             "index": 0
           }
@@ -1453,84 +1924,6 @@
         [
           {
             "node": "Send Other Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Append Lead": {
-      "main": [
-        [
-          {
-            "node": "Switch by Lead Type",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log Reply Sent": {
-      "main": [
-        [
-          {
-            "node": "Check User State Before Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait Follow-up Delay": {
-      "main": [
-        [
-          {
-            "node": "Check User State After Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update User State": {
-      "main": [
-        [
-          {
-            "node": "Check Existing Lead",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log Follow-up Sent": {
-      "main": [
-        []
-      ]
-    },
-    "Validate Required Fields": {
-      "main": [
-        [
-          {
-            "node": "Update User State",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Stop and Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Existing Lead": {
-      "main": [
-        [
-          {
-            "node": "Is Duplicate?",
             "type": "main",
             "index": 0
           }
@@ -1581,11 +1974,22 @@
         ]
       ]
     },
-    "Check User State Before Wait": {
+    "Log Reply Sent": {
       "main": [
         [
           {
             "node": "Wait Follow-up Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Follow-up Delay": {
+      "main": [
+        [
+          {
+            "node": "Check User State After Wait",
             "type": "main",
             "index": 0
           }
@@ -1637,16 +2041,10 @@
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
+    "availableInMCP": false,
     "timeSavedMode": "fixed",
-    "errorWorkflow": "YOUR_ERROR_WORKFLOW_ID",
     "timezone": "Europe/Riga",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "SANITIZED_VERSION_ID",
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "id": "SANITIZED_WORKFLOW_ID",
-  "tags": []
+  "nodeGroups": []
 }

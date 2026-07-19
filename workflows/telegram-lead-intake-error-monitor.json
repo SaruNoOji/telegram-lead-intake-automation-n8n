@@ -1,15 +1,15 @@
 {
-  "name": "Error Monitor",
+  "name": "Telegram Lead Intake — Error Monitor",
   "nodes": [
     {
       "parameters": {},
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "position": [
-        -256,
-        -112
+        -912,
+        -544
       ],
-      "id": "01a76984-1146-4a65-b37a-de0156225c45",
+      "id": "86bbc037-2f2d-4548-8896-9b5cda0a5c23",
       "name": "Error Trigger"
     },
     {
@@ -17,57 +17,57 @@
         "assignments": {
           "assignments": [
             {
-              "id": "6362ace3-48ef-4173-b224-c966fd2051d9",
+              "id": "bc0bd931-b569-4494-9227-27b7c0f36eb5",
               "name": "created_at",
-              "value": "={{ $now.setZone('Europe/Riga').format('yyyy-MM-dd HH:mm') }}",
+              "value": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}",
               "type": "string"
             },
             {
-              "id": "5e28cd19-5676-4348-a904-6c1a319b6650",
+              "id": "1a5c5a48-e9ed-47ab-bc2b-e1a2e94d0dae",
               "name": "workflow_name",
-              "value": "={{ $json.workflow.name || \"\" }}",
+              "value": "={{ $json.workflow?.name || '' }}",
               "type": "string"
             },
             {
-              "id": "b82d694e-1cd0-4657-872a-c9fb349436fd",
+              "id": "b7aacfa9-94af-4ae1-b201-4914808d88d4",
               "name": "workflow_id",
-              "value": "={{ $json.workflow.id || \"\" }}",
+              "value": "={{ String($json.workflow?.id || '') }}",
               "type": "string"
             },
             {
-              "id": "1c7b1cb6-cbdb-460a-bc67-81f261e897e7",
+              "id": "c58c7711-8504-4407-b119-88def982335e",
               "name": "execution_id",
-              "value": "={{ $json.execution.id || \"\" }}",
-              "type": "number"
+              "value": "={{ String($json.execution?.id || '') }}",
+              "type": "string"
             },
             {
-              "id": "7dd8e860-0bf2-4bd5-a435-1b27ca05b161",
+              "id": "34a6d52f-f424-41ba-99cc-6d2ffb3963a5",
               "name": "error_node",
-              "value": "={{ $json.execution.lastNodeExecuted || \"\" }}",
+              "value": "={{ String($json.execution?.lastNodeExecuted || '') }}",
               "type": "string"
             },
             {
-              "id": "27096009-206f-47ac-935e-14f58e645f8f",
+              "id": "69a60178-2e52-401b-9e69-9f2557db0cb7",
               "name": "error_message",
-              "value": "={{ $json.execution.error.message || \"\" }}",
+              "value": "={{ String($json.execution?.error?.message || '').slice(0, 2000) }}",
               "type": "string"
             },
             {
-              "id": "4d87a403-3559-4e6c-9fd6-776b68862a38",
+              "id": "5848b9c6-4e7a-4b9a-a054-ba7fe7875d5c",
               "name": "error_stack",
-              "value": "={{ $json.execution.error.stack || \"\" }}",
+              "value": "={{ String($json.execution?.error?.stack || '').slice(0, 45000) }}",
               "type": "string"
             },
             {
-              "id": "3d1c3d0e-6bdb-4e29-94fa-cd9766232d91",
+              "id": "253cc8bf-fb5c-4547-91ce-e51c748c411e",
               "name": "last_node_executed",
-              "value": "={{ $json.execution.lastNodeExecuted || \"\" }}",
+              "value": "={{ String($json.execution?.lastNodeExecuted || '') }}",
               "type": "string"
             },
             {
-              "id": "2bdcce3a-066f-4533-8200-33df54b6b1a1",
+              "id": "0fb5c4fe-a844-44d4-a9df-a47ba649ba19",
               "name": "mode",
-              "value": "={{ $json.execution.mode || \"\" }}",
+              "value": "={{ String($json.execution?.mode || '') }}",
               "type": "string"
             }
           ]
@@ -77,10 +77,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -32,
-        -112
+        -688,
+        -544
       ],
-      "id": "8ab06384-afd6-4f36-b836-41ac571ff6d0",
+      "id": "b1788483-3348-4852-901a-ae759b380699",
       "name": "Normalize Error"
     },
     {
@@ -88,30 +88,26 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
-          "mode": "list",
-          "cachedResultName": "n8n_leads_test",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1093997542,
-          "mode": "list",
-          "cachedResultName": "workflow_errors",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL#gid=workflow_errors"
+          "value": "workflow_errors",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "created_at": "={{ $json.created_at }}",
-            "workflow_name": "={{ $json.workflow_name }}",
-            "workflow_id": "={{ $json.workflow_id }}",
-            "execution_id": "={{ $json.execution_id }}",
-            "error_node": "={{ $json.error_node }}",
-            "error_message": "={{ $json.error_message }}",
-            "error_stack": "={{ $json.error_stack }}",
-            "last_node_executed": "={{ $json.last_node_executed }}",
-            "mode": "={{ $json.mode }}"
+            "created_at": "={{$('Normalize Error').item.json.created_at }}",
+            "workflow_name": "={{ $('Normalize Error').item.json.workflow_name }}",
+            "workflow_id": "={{ $('Normalize Error').item.json.workflow_id }}",
+            "execution_id": "={{ $('Normalize Error').item.json.execution_id }}",
+            "error_node": "={{ $('Normalize Error').item.json.error_node }}",
+            "error_message": "={{ $('Normalize Error').item.json.error_message }}",
+            "error_stack": "={{ $('Normalize Error').item.json.error_stack }}",
+            "last_node_executed": "={{ $('Normalize Error').item.json.last_node_executed }}",
+            "mode": "={{ $('Normalize Error').item.json.mode }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -214,57 +210,40 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        192,
-        -112
+        -240,
+        -544
       ],
-      "id": "5eddb3f5-af77-467b-ab3d-8e2e80b678dd",
+      "id": "95604f84-25ca-46fc-9844-0de257a1f2e2",
       "name": "Append Error Log",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL_NAME"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
     },
     {
       "parameters": {
-        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "chatId": "REPLACE_WITH_ADMIN_CHAT_ID",
         "text": "={{\n'n8n workflow error\\n'\n+ 'Workflow: ' + String($('Normalize Error').item.json.workflow_name || '') + '\\n'\n+ 'Execution: ' + String($('Normalize Error').item.json.execution_id || '') + '\\n'\n+ 'Node: ' + String($('Normalize Error').item.json.error_node || '') + '\\n'\n+ 'Error: ' + String($('Normalize Error').item.json.error_message || '').slice(0, 500)\n}}",
         "additionalFields": {
-          "appendAttribution": false,
-          "parse_mode": "HTML"
+          "appendAttribution": false
         }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        416,
-        -112
+        -464,
+        -544
       ],
-      "id": "1aa52d74-32f7-4de0-bdc4-3e6246b41425",
+      "id": "e9b528bd-d9ec-4648-859f-222af614cf0f",
       "name": "Send Admin Alert",
-      "webhookId": "YOUR_WEBHOOK_ID",
-      "credentials": {
-        "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
-          "name": "YOUR_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
     }
   ],
   "pinData": {},
   "connections": {
-    "Normalize Error": {
-      "main": [
-        [
-          {
-            "node": "Append Error Log",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Error Trigger": {
       "main": [
         [
@@ -276,11 +255,22 @@
         ]
       ]
     },
-    "Append Error Log": {
+    "Normalize Error": {
       "main": [
         [
           {
             "node": "Send Admin Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Admin Alert": {
+      "main": [
+        [
+          {
+            "node": "Append Error Log",
             "type": "main",
             "index": 0
           }
@@ -291,12 +281,9 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timezone": "Europe/Riga"
   },
-  "versionId": "SANITIZED_VERSION_ID",
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "id": "SANITIZED_WORKFLOW_ID",
-  "tags": []
+  "nodeGroups": []
 }

@@ -10,6 +10,7 @@ Stores accepted leads.
 | ----------------- | ----------------------------------- |
 | `created_at`      | Lead creation timestamp             |
 | `chat_id`         | Telegram chat ID                    |
+| `message_id`      | Telegram message ID                 |
 | `username`        | Telegram username                   |
 | `first_name`      | Telegram first name                 |
 | `text`            | Original message text               |
@@ -26,6 +27,7 @@ Stores workflow events.
 | ------------ | ------------------ |
 | `created_at` | Event timestamp    |
 | `chat_id`    | Telegram chat ID   |
+| `message_id` | Telegram message ID |
 | `username`   | Telegram username  |
 | `text`       | Original lead text |
 | `dedupe_key` | Related dedupe key |
@@ -40,6 +42,8 @@ reply_sent
 follow_up_sent
 follow_up_skipped
 duplicate
+start_command
+unsupported_message
 ```
 
 ### `telegram_user_state`
@@ -50,6 +54,7 @@ Stores the latest user state used to decide whether a follow-up should be sent.
 | ----------------- | ----------------------- |
 | `chat_id`         | Telegram chat ID        |
 | `username`        | Telegram username       |
+| `last_message_id` | Latest Telegram message ID |
 | `last_message_at` | Last message timestamp  |
 | `last_text`       | Last user message       |
 | `last_dedupe_key` | Last message dedupe key |
